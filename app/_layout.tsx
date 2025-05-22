@@ -21,14 +21,14 @@ export default function RootLayout() {
 
         
         <Stack.Screen 
-          name="ingredientes/index" 
+          name="ingredientes/index"
           options={{ 
             title: 'Ingredientes',
             gestureEnabled: true 
           }} 
         />
         <Stack.Screen 
-          name="ingredientes/[id]" 
+          name="ingredientes/[id]"
           options={{ 
             title: 'Detalhes',
             presentation: 'modal'

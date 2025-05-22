@@ -1,78 +1,97 @@
 import { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, StyleSheet } from 'react-native';
-import { Link } from 'expo-router';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, TextInput, Modal, Alert } from 'react-native';
 
-export default function BebidasPage() {
-  const [bebidas, setBebidas] = useState([
-    { id: '1', nome: 'Caipirinha', descricao: 'Clássico brasileiro com limão e cachaça' },
-    { id: '2', nome: 'Smoothie de Morango', descricao: 'Refrescante e saudável' },
-    { id: '3', nome: 'Café Gelado', descricao: 'Perfeito para os dias quentes' }
+type Bebida = {
+  id: string;
+  nome: string;
+  descricao: string;
+};
+
+export default function ListaBebidas() {
+  const [bebidas, setBebidas] = useState<Bebida[]>([
+  { id: '1', nome: 'Caipirinha', descricao: 'Limão, açúcar e cachaça' },
+  { id: '2', nome: 'Mojito', descricao: 'Hortelã, rum e água com gás' },
+  { id: '3', nome: 'Piña Colada', descricao: 'Abacaxi, leite de coco e rum' },
+  { id: '4', nome: 'Bloody Mary', descricao: 'Suco de tomate, vodka e especiarias' },
+  { id: '5', nome: 'Sex on the Beach', descricao: 'Vodka, licor de pêssego e sucos' },
+  { id: '6', nome: 'Tequila Sunrise', descricao: 'Tequila, suco de laranja e grenadine' },
+  { id: '7', nome: 'Cuba Libre', descricao: 'Rum, cola e limão' },
+  { id: '8', nome: 'Gin Tônica', descricao: 'Gin, água tônica e limão' }
   ]);
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [nome, setNome] = useState('');
-  const [descricao, setDescricao] = useState('');
+  const [editando, setEditando] = useState<Bebida | null>(null);
+  const [form, setForm] = useState<Omit<Bebida, 'id'>>({ nome: '', descricao: '' });
 
-  function adicionarBebida() {
-    if (nome.trim() && descricao.trim()) {
-      const nova = {
-        id: Date.now().toString(),
-        nome,
-        descricao
-      };
-      setBebidas([...bebidas, nova]);
-      setNome('');
-      setDescricao('');
-      setModalVisible(false);
+  const abrirModal = (bebida?: Bebida) => {
+    if (bebida) {
+      setEditando(bebida);
+      setForm({ nome: bebida.nome, descricao: bebida.descricao });
+    } else {
+      setEditando(null);
+      setForm({ nome: '', descricao: '' });
     }
-  }
+    setModalVisible(true);
+  };
+
+  const salvarBebida = () => {
+    if (editando) {
+      setBebidas(bebidas.map(b => b.id === editando.id ? { ...editando, ...form } : b));
+    } else {
+      const nova = { ...form, id: Date.now().toString() };
+      setBebidas([...bebidas, nova]);
+    }
+    setModalVisible(false);
+  };
+
+  const excluirBebida = () => {
+    if (editando) {
+      Alert.alert("Excluir", "Deseja excluir esta bebida?", [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir", style: "destructive", onPress: () => {
+            setBebidas(bebidas.filter(b => b.id !== editando.id));
+            setModalVisible(false);
+          }
+        }
+      ]);
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Text style={styles.header}>Minhas Bebidas</Text>
-        <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
-          <Text style={styles.addButtonText}>+ Nova</Text>
-        </TouchableOpacity>
-      </View>
-
       <FlatList
         data={bebidas}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <Link href={`/bebidas/${item.id}`} asChild>
-            <TouchableOpacity style={styles.item}>
-              <Text style={styles.itemTitle}>{item.nome}</Text>
-              <Text style={styles.itemDesc}>{item.descricao}</Text>
-            </TouchableOpacity>
-          </Link>
+          <TouchableOpacity style={styles.item} onPress={() => abrirModal(item)}>
+            <Text style={styles.nome}>{item.nome}</Text>
+            <Text style={styles.descricao}>{item.descricao}</Text>
+          </TouchableOpacity>
         )}
       />
 
-      <Modal visible={modalVisible} animationType="slide" transparent>
-        <View style={styles.modalWrapper}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Nova Bebida</Text>
-            <TextInput
-              placeholder="Nome da bebida"
-              style={styles.input}
-              value={nome}
-              onChangeText={setNome}
-            />
-            <TextInput
-              placeholder="Descrição"
-              style={[styles.input, { height: 80 }]}
-              value={descricao}
-              onChangeText={setDescricao}
-              multiline
-            />
+      <TouchableOpacity style={styles.addButton} onPress={() => abrirModal()}>
+        <Text style={styles.addButtonText}>Adicionar Bebida</Text>
+      </TouchableOpacity>
 
-            <TouchableOpacity style={styles.saveButton} onPress={adicionarBebida}>
-              <Text style={styles.saveButtonText}>Salvar</Text>
-            </TouchableOpacity>
+      <Modal visible={modalVisible} animationType="slide">
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>{editando ? 'Editar' : 'Nova'} Bebida</Text>
+          <TextInput style={styles.input} placeholder="Nome" value={form.nome} onChangeText={nome => setForm({ ...form, nome })} />
+          <TextInput style={styles.input} placeholder="Descrição" value={form.descricao} onChangeText={descricao => setForm({ ...form, descricao })} multiline />
 
-            <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+          <View style={styles.buttonRow}>
+            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => setModalVisible(false)}>
               <Text style={styles.cancelButtonText}>Cancelar</Text>
+            </TouchableOpacity>
+            {editando && (
+              <TouchableOpacity style={[styles.button, styles.deleteButton]} onPress={excluirBebida}>
+                <Text style={styles.cancelButtonText}>Excluir</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={[styles.button, styles.saveButton]} onPress={salvarBebida}>
+              <Text style={styles.saveButtonText}>Salvar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -82,101 +101,20 @@ export default function BebidasPage() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#E6F0FA', 
-    padding: 20,
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#0000CD',
-  },
-  addButton: {
-    backgroundColor: '#0000CD',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  addButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  item: {
-    backgroundColor: 'white',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: '#0000CD',
-    elevation: 2,
-  },
-  itemTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  itemDesc: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-  },
-  modalWrapper: {
-    flex: 1,
-    justifyContent: 'center',
-    backgroundColor: 'rgba(2, 2, 2, 0.5)',
-  },
-  modalContainer: {
-    margin: 50,
-    backgroundColor: '#E6F0FA', 
-    borderRadius: 12,
-    padding: 24,
-    elevation: 5,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#0000CD',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  input: {
-    width: '100%',
-    padding: 10,
-    backgroundColor: 'white',
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 8,
-    marginBottom: 15,
-  },
-  saveButton: {
-    backgroundColor: '#28a745',
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginBottom: 10,
-    alignItems: 'center',
-  },
-  saveButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  cancelButton: {
-    backgroundColor: '#dc3545',
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
+  container: { flex: 1, padding: 16 },
+  item: { padding: 16, backgroundColor: '#FFEFD5', marginBottom: 8, borderRadius: 8 },
+  nome: { fontWeight: 'bold', fontSize: 16 },
+  descricao: { fontSize: 14, color: '#333' },
+  addButton: { backgroundColor: '#0000CD', padding: 16, borderRadius: 8, alignItems: 'center' },
+  addButtonText: { color: '#fff', fontWeight: 'bold' },
+  modalContainer: { flex: 1, padding: 20, justifyContent: 'center' },
+  modalTitle: { fontSize: 22, fontWeight: 'bold', textAlign: 'center', marginBottom: 16 },
+  input: { borderWidth: 1, borderColor: '#ccc', padding: 12, marginBottom: 12, borderRadius: 8 },
+  buttonRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
+  button: { flex: 1, padding: 12, borderRadius: 8, alignItems: 'center' },
+  cancelButton: { backgroundColor: '#ccc' },
+  deleteButton: { backgroundColor: '#dc3545' },
+  cancelButtonText: { color: '#fff', fontWeight: 'bold' },
+  saveButton: { backgroundColor: '#28a745' },
+  saveButtonText: { color: '#fff', fontWeight: 'bold' },
 });

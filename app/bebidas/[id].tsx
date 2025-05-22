@@ -20,6 +20,12 @@ const bebidasMock = [
     descricao: 'Perfeito para os dias quentes',
     preparo: 'Prepare um café forte, adicione gelo, leite e açúcar a gosto.'
   },
+  {
+    id:'4',
+    nome: 'Milk shake',
+    descrição: 'Bateu aquela vontade de tomar uma coisa gelada no calor',
+    preparo: 'Adicione 3 bolas de sorvete, leite ou creme de leite ponha leite condesado se quiser,e está pronto!'
+  },
 ];
 
 export default function DetalhesBebida() {
