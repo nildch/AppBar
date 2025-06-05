@@ -1,63 +1,31 @@
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { StatusBar } from 'expo-status-bar';
+import 'react-native-reanimated';
+
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 export default function RootLayout() {
+  const colorScheme = useColorScheme();
+  const [loaded] = useFonts({
+    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+  });
+
+  if (!loaded) {
+    
+    return null;
+  }
+
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          animation: 'fade',
-          contentStyle: { backgroundColor: '#FFF9F2' }, 
-        }}
-      >
-        
-        <Stack.Screen 
-          name="index" 
-          options={{
-            animationTypeForReplace: 'push', 
-          }}
-        />
-
-        
-        <Stack.Screen 
-          name="ingredientes/index"
-          options={{ 
-            title: 'Ingredientes',
-            gestureEnabled: true 
-          }} 
-        />
-        <Stack.Screen 
-          name="ingredientes/[id]"
-          options={{ 
-            title: 'Detalhes',
-            presentation: 'modal'
-          }} 
-        />
-
-        
-        <Stack.Screen 
-          name="bebidas/index" 
-          options={{
-            title: 'Bebidas',
-            gestureDirection: 'horizontal' 
-          }} 
-        />
-        <Stack.Screen 
-          name="bebidas/[id]" 
-          options={{ 
-            title: 'Detalhes da Bebida',
-            animation: 'slide_from_right' 
-          }} 
-        />
-        <Stack.Screen 
-          name="bebidas/create" 
-          options={{ 
-            title: 'Nova Bebida',
-            presentation: 'formSheet' 
-          }} 
-        />
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="+not-found" />
       </Stack>
-    </GestureHandlerRootView>
+
+      
+      <StatusBar style="auto" />
+    </ThemeProvider>
   );
 }
